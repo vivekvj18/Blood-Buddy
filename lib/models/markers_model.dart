@@ -58,4 +58,15 @@ class Markers {
     _data['service'] = service;
     return _data;
   }
+    Markers.fromjson2(Map<String, dynamic> json){
+    no = json['no'];
+    region = json['region'];
+    address = json['address'];
+    auxaddres = json['auxaddres'];
+    latitude = json['latitude'];
+    longitude = json['longitude'];
+    type = json['type'];
+    power = json['power'];
+    service = json['service'];
+  }
 }
