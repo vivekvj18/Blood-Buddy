@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -15,7 +16,8 @@ import 'package:bloodbuddyfinal/screens/station_details_page.dart';
 import 'package:bloodbuddyfinal/utils/mapStyle.dart';
 
 class DashBoardScreen extends StatefulWidget {
-  DashBoardScreen({Key? key}) : super(key: key);
+  late User auths;
+  DashBoardScreen({Key? key, auths}) : super(key: key);
 
   @override
   State<DashBoardScreen> createState() => _DashBoardScreenState();
@@ -35,6 +37,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   late Marker destinationMarker;
   late BitmapDescriptor customIcon;
   late GoogleMapController mapController;
+  late FirebaseAuth auth;
 
   @override
   void initState() {
@@ -55,6 +58,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
   onSearch(String search) {
     print("");
+  }
+
+  void updateAuth() {
+    final applicationBloc =
+        Provider.of<ApplicationBloc>(context, listen: false);
+        setState(() {
+          applicationBloc.auth = widget.auths;
+        });
   }
 
   void setPolylines() async {
