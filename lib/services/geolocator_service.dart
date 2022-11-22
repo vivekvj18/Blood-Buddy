@@ -10,10 +10,10 @@ class GeolocatorService {
     await Geolocator.checkPermission();
     await Geolocator.requestPermission();
     print('done');
-    late Markers userdata=Markers(no: 1, region: 'region', address: 'address', auxaddres: 'auxaddres');
-    userdata.latitude= await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high) as String;
-    postDetailsToFirestore(userdata);
+    // late Markers userdata=Markers(no: 1, region: 'region', address: 'address', auxaddres: 'auxaddres');
+    // userdata.latitude= await Geolocator.getCurrentPosition(
+    //     desiredAccuracy: LocationAccuracy.high) as String;
+    // postDetailsToFirestore(userdata);
     return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
   }

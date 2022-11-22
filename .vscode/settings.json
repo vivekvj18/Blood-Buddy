@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.html": "html",
+        "*.txt": "bat",
+        "c++": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}
