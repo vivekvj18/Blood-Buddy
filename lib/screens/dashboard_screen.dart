@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:bloodbuddyfinal/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -40,6 +41,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   late Marker destinationMarker;
   late BitmapDescriptor customIcon;
   late GoogleMapController mapController;
+  late FirebaseAuth auth;
 
   @override
   void initState() {
