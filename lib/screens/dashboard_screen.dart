@@ -1,4 +1,8 @@
+import 'dart:developer';
+
+import 'package:bloodbuddyfinal/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -15,7 +19,8 @@ import 'package:bloodbuddyfinal/screens/station_details_page.dart';
 import 'package:bloodbuddyfinal/utils/mapStyle.dart';
 
 class DashBoardScreen extends StatefulWidget {
-  DashBoardScreen({Key? key}) : super(key: key);
+  late User auth;
+  DashBoardScreen({Key? key, User? auth}) : super(key: key);
 
   @override
   State<DashBoardScreen> createState() => _DashBoardScreenState();
@@ -39,8 +44,13 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   void initState() {
     if (functioncalled) {
+      // setState(() {
+      //   functioncalled = false;
+      // });
       setState(() {
-        functioncalled = false;
+        final applicationBloc =
+            Provider.of<ApplicationBloc>(context, listen: false);
+        //applicationBloc.auth = widget.auth;
       });
       customMarker();
       getMarkerData();
@@ -88,19 +98,23 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     final applicationBloc =
         Provider.of<ApplicationBloc>(context, listen: false);
     // "news line");
-    final response =
-        await FirebaseFirestore.instance.collection('markers').get();
-    markers = AutoGenerate.fromJson(response.docs[0].data());
-    // "lololol");
-    // "${markers.markers.length}");
+    final response = await FirebaseFirestore.instance.collection('users').get();
+    //markers = AutoGenerate.fromJson(response.docs[0].data());
+    List<UserModel> data = [];
+    for (int i = 0; i < response.docs.length; i++) {
+      data.add(UserModel.fromMap(response.docs[i].data()));
+    }
+
+    log("[data fetched and put into the model] ${data.length}");
+
     setState(() {
       LatLng co = LatLng(28.70448061865909, 77.25660755168144);
       dtuMarkers.add(manualMarker(co, 'BHAJANPURA'));
-      for (int i = 0; i < markers.markers.length; i++) {
+      for (int i = 0; i < data.length; i++) {
         dtuMarkers.add(manualMarker(
-            LatLng(double.parse(markers.markers[i].latitude),
-                double.parse(markers.markers[i].longitude)),
-            markers.markers[i].auxaddres));
+            LatLng(
+                double.parse(data[i].email!), double.parse(data[i].firstName!)),
+            data[i].displayName!));
       }
       if (applicationBloc.currentLocation != null) {
         dtuMarkers.sort((a, b) => Geolocator.distanceBetween(
@@ -114,7 +128,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 applicationBloc.currentLocation!.latitude,
                 applicationBloc.currentLocation!.longitude)));
       }
+      dtuMarkers.removeAt(0);
       closest = dtuMarkers[0];
+      log("[markers added] ${dtuMarkers.length}");
     });
   }
 
@@ -129,15 +145,15 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     return Marker(
       markerId: MarkerId(title),
       position: latLng,
-      icon: customIcon,
+      //icon: customIcon,
       onTap: () {
         final applicationBloc =
             Provider.of<ApplicationBloc>(context, listen: false);
         setState(() {
           destinationMarker = Marker(
-            markerId: MarkerId('Local Admin'),
+            markerId: MarkerId(title),
             position: latLng,
-            icon: customIcon,
+            //icon: customIcon,
           );
           if (applicationBloc.currentLocation != 0) {
             BitmapDescriptor.fromAssetImage(
@@ -185,7 +201,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(15.0),
-                    child: Text('Local Admin',
+                    child: Text('$title',
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.montserrat(
                           fontSize: 20,
@@ -383,49 +399,57 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   ))
                 : Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: GoogleMap(
-                      mapType: MapType.normal,
-                      trafficEnabled: false,
-                      myLocationEnabled: true,
-                      onMapCreated: (GoogleMapController controller) {
-                        controller.setMapStyle(MapStyle.mapStyle);
-                        setState(() {
-                          mapController = controller;
-                        });
-                        // "map crated");
-                        if (firstTimeCamera) {
-                          getMarkerData().then(
-                              // "got marker data"),
-                              updateCameraLocation(
-                                  LatLng(
-                                      applicationBloc.currentLocation!.latitude,
-                                      applicationBloc
-                                          .currentLocation!.longitude),
-                                  Set<Marker>.of(dtuMarkers).first.position,
-                                  controller));
-                          setState(() {
-                            firstTimeCamera = false;
-                          });
-                        }
-                      },
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(
-                            applicationBloc.currentLocation!.latitude,
-                            applicationBloc.currentLocation!.longitude),
-                        zoom: 16,
-                        tilt: 65,
-                        bearing: 30,
-                      ),
-                      markers: Set<Marker>.of(dtuMarkers),
-                      compassEnabled: false,
-                      tiltGesturesEnabled: false,
-                      mapToolbarEnabled: false,
-                      myLocationButtonEnabled: true,
-                      zoomGesturesEnabled: true,
-                      rotateGesturesEnabled: true,
-                      scrollGesturesEnabled: true,
-                      zoomControlsEnabled: false,
-                    ),
+                    child: (dtuMarkers.toSet().length == null)
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                            color: Color.fromARGB(255, 0, 255, 162),
+                          ))
+                        : GoogleMap(
+                            mapType: MapType.normal,
+                            trafficEnabled: false,
+                            myLocationEnabled: true,
+                            onMapCreated: (GoogleMapController controller) {
+                              controller.setMapStyle(MapStyle.mapStyle);
+                              setState(() {
+                                mapController = controller;
+                              });
+                              // "map crated");
+                              if (firstTimeCamera) {
+                                getMarkerData().then(
+                                    // "got marker data"),
+                                    updateCameraLocation(
+                                        LatLng(
+                                            applicationBloc
+                                                .currentLocation!.latitude,
+                                            applicationBloc
+                                                .currentLocation!.longitude),
+                                        Set<Marker>.of(dtuMarkers)
+                                            .first
+                                            .position,
+                                        controller));
+                                setState(() {
+                                  firstTimeCamera = false;
+                                });
+                              }
+                            },
+                            initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                  applicationBloc.currentLocation!.latitude,
+                                  applicationBloc.currentLocation!.longitude),
+                              zoom: 16,
+                              tilt: 65,
+                              bearing: 30,
+                            ),
+                            markers: Set<Marker>.of(dtuMarkers),
+                            compassEnabled: false,
+                            tiltGesturesEnabled: false,
+                            mapToolbarEnabled: false,
+                            myLocationButtonEnabled: true,
+                            zoomGesturesEnabled: true,
+                            rotateGesturesEnabled: true,
+                            scrollGesturesEnabled: true,
+                            zoomControlsEnabled: false,
+                          ),
                   ),
           ),
           Padding(
@@ -451,6 +475,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         applicationBloc.currentLocation!.longitude),
                     dtuMarkers.first.position,
                     mapController);
+                
               },
               child: Center(
                 child: Text(

@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:bloodbuddyfinal/blocs/application_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +11,7 @@ import 'package:bloodbuddyfinal/utils/showSnackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 
 class FirebaseAuthMethods {
   final FirebaseAuth _auth;
@@ -159,11 +163,15 @@ class FirebaseAuthMethods {
                 smsCode: codeController.text.trim(),
               );
               // !!! Works only on Android, iOS !!!
-              await _auth.signInWithCredential(credential).then((value) => {
-                    // "done"),
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home-screen', (Route<dynamic> route) => false),
-                  }); // Remove the dialog box
+              await _auth.signInWithCredential(credential).then((value) {
+                // "done"),
+                final applicationBloc =
+                    Provider.of<ApplicationBloc>(context, listen: false);
+                applicationBloc.auth = _auth.currentUser!;
+                log("[AUTH] ${applicationBloc.auth}");
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/home-screen', (Route<dynamic> route) => false);
+              }); // Remove the dialog box
             },
           );
         }),

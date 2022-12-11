@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -113,6 +115,10 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
     if (firebaseUser != null) {
+      final applicationBloc =
+          Provider.of<ApplicationBloc>(context, listen: false);
+      applicationBloc.auth = firebaseUser;
+      log('[AuthWrapper]: firebaseUser != null ${applicationBloc.auth}');
       return const HomeScreen();
       // return H();
     }
