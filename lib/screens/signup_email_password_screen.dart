@@ -7,6 +7,8 @@ import 'package:bloodbuddyfinal/models/user_model.dart';
 import 'package:bloodbuddyfinal/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 
+import 'bloodgroup.dart';
+
 class EmailPasswordSignup extends StatefulWidget {
   static String routeName = '/signup-email-password';
   const EmailPasswordSignup({Key? key}) : super(key: key);
@@ -289,11 +291,21 @@ class _EmailPasswordSignupState extends State<EmailPasswordSignup> {
         .doc(user.uid)
         .set(userModel.toMap());
     Fluttertoast.showToast(msg: "Account created successfully :) ");
-
-    Navigator.pushAndRemoveUntil(
-        (context),
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-        (route) => false);
+    var blood = await firebaseFirestore.collection('blood').doc(user.uid).get();
+    if (blood.exists) {
+      Navigator.pushAndRemoveUntil(
+          (context),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false);
+    } else {
+      Navigator.pushAndRemoveUntil(
+          (context),
+          MaterialPageRoute(
+              builder: (context) => BloodGroupScreen(
+                    title: user.uid,
+                  )),
+          (route) => false);
+    }
   }
 
   void signUpUser() async {

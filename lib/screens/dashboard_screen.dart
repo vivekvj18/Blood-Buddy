@@ -153,7 +153,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
             Provider.of<ApplicationBloc>(context, listen: false);
         setState(() {
           destinationMarker = Marker(
-            markerId: MarkerId(title),
+            markerId: MarkerId(title),  
             position: latLng,
             //icon: customIcon,
           );
