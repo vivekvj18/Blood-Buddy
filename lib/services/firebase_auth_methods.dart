@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:bloodbuddyfinal/blocs/application_bloc.dart';
+import 'package:bloodbuddyfinal/screens/bloodgroup.dart';
+import 'package:bloodbuddyfinal/screens/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -97,8 +99,24 @@ class FirebaseAuthMethods {
         // restrict access to certain things using provider
         // transition to another page instead of home screen
       }
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          '/home-screen', (Route<dynamic> route) => false);
+      // Navigator.of(context).pushNamedAndRemoveUntil(
+      //     '/home-screen', (Route<dynamic> route) => false);
+          FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+var blood = await firebaseFirestore.collection('blood').doc(user.uid).get();
+    if (blood.exists) {
+      Navigator.pushAndRemoveUntil(
+          (context),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false);
+    } else {
+      Navigator.pushAndRemoveUntil(
+          (context),
+          MaterialPageRoute(
+              builder: (context) => BloodGroupScreen(
+                    title: user.uid,
+                  )),
+          (route) => false);
+    }
     } on FirebaseAuthException catch (e) {
       showSnackBar(context, e.message!); // Displaying the error message
     }
@@ -163,14 +181,30 @@ class FirebaseAuthMethods {
                 smsCode: codeController.text.trim(),
               );
               // !!! Works only on Android, iOS !!!
-              await _auth.signInWithCredential(credential).then((value) {
+              await _auth.signInWithCredential(credential).then((value) async {
                 // "done"),
                 final applicationBloc =
                     Provider.of<ApplicationBloc>(context, listen: false);
                 applicationBloc.auth = _auth.currentUser!;
                 log("[AUTH] ${applicationBloc.auth}");
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/home-screen', (Route<dynamic> route) => false);
+                // Navigator.of(context).pushNamedAndRemoveUntil(
+                //     '/home-screen', (Route<dynamic> route) => false);
+                    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+                var blood = await firebaseFirestore.collection('blood').doc(user.uid).get();
+    if (blood.exists) {
+      Navigator.pushAndRemoveUntil(
+          (context),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false);
+    } else {
+      Navigator.pushAndRemoveUntil(
+          (context),
+          MaterialPageRoute(
+              builder: (context) => BloodGroupScreen(
+                    title: user.uid,
+                  )),
+          (route) => false);
+    }
               }); // Remove the dialog box
             },
           );
